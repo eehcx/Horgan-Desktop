@@ -1,0 +1,78 @@
+unit categories;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, Mask, RzEdit, jpeg, ExtCtrls;
+
+type
+  TformCategorias = class(TForm)
+    ListBoxcategories: TListBox;
+    PContenidoCategories: TPanel;
+    Image1: TImage;
+    Label1: TLabel;
+    EditCategories: TRzEdit;
+    btnAgregar: TPanel;
+    procedure FormShow(Sender: TObject);
+    procedure btnAgregarClick(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  formCategorias: TformCategorias;
+        valor:String;
+
+implementation
+
+uses datos, login;
+
+{$R *.dfm}
+
+procedure TformCategorias.FormShow(Sender: TObject);
+begin
+    M.Consulta.SQL.Clear;
+    M.Consulta.SQL.Add('select * from Usuarios IdUsuario where nickName=' + QuotedStr(formLogin.EditUser.Text));
+    M.Consulta.Open;
+    valor:= (M.Consulta.FieldByName('IdUsuario').AsString);
+
+
+    M.Consulta.SQL.Clear;
+    M.Consulta.SQL.Add('select * from Categorias  nombre where IdUsuario=' + QuotedStr(valor) + 'order by IdCategoria asc');
+    M.Consulta.Open;
+
+    While not M.Consulta.Eof do begin
+        ListBoxcategories.Items.Add(M.Consulta.FieldByName('nombre').AsString);
+        //ComboCategory2.Items.Add(M.Consulta.FieldByName('IdCategoria').AsString);
+        M.Consulta.Next;
+    End;
+end;
+
+procedure TformCategorias.btnAgregarClick(Sender: TObject);
+begin
+    EditCategories.Text:=Trim(EditCategories.Text);
+    If Length (EditCategories.Text)=0 Then Begin
+        Application.MessageBox('Ingresa una categoría','Categorías',Mb_IconWarning + Mb_Ok);
+        Exit;
+    End;
+    If Length (EditCategories.Text)>15 Then Begin
+        Application.MessageBox('Las categorías deben contener menos texto','Categorías',Mb_IconWarning + Mb_Ok);
+        EditCategories.Clear;
+        Exit;
+    End;
+
+    {Registrar Categorias}
+    M.Consulta.Sql.Clear;
+    M.Consulta.Sql.Add('insert into Categorias (IdUsuario,nombre) values (' + QuotedStr(valor) + ','
+                        + QuotedStr(EditCategories.Text) + ')'
+                        );
+    M.Consulta.ExecSQL;
+    ListBoxcategories.Items.Add(EditCategories.Text);
+
+    EditCategories.Clear;
+end;
+
+end.
